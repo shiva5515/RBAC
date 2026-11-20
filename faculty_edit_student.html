@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Student</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>College Portal</h2>
+    {% set current_role = session.get('role', role|default('')) %}
+    <p>{{ current_role|capitalize }} Panel</p>
+
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('faculty_students') }}">Manage Students</a>
+    <a href="{{ url_for('change_password') }}">Change Password</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</div>
+
+<div class="main-content">
+
+    <header>
+        <div>
+            <h1>Edit Student Details</h1>
+            <p>Update student information</p>
+        </div>
+        <span class="role-badge">FACULTY</span>
+    </header>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <div class="alert">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="panel form-panel">
+
+        <form method="POST">
+
+            <label>Full Name</label>
+            <input
+                type="text"
+                name="name"
+                value="{{ student.name }}"
+                required
+            >
+
+            <label>Registration ID</label>
+            <input
+                type="text"
+                value="{{ student.roll_number }}"
+                readonly
+            >
+            <small>
+                Registration ID cannot be changed after the account is created.
+            </small>
+
+            <label>Dept/Class</label>
+            <input
+                type="text"
+                name="dept_class"
+                value="{{ student.dept_class or '' }}"
+            >
+
+            <label>Academic Year</label>
+            <select name="year" required>
+                {% for i in range(1, 5) %}
+                <option value="{{ i }}"
+                    {% if student.year == i %}selected{% endif %}>
+                    Year {{ i }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Save Changes</button>
+
+            <a class="cancel-link"
+               href="{{ url_for('faculty_student_details', student_id=student.student_id) }}">
+                Cancel
+            </a>
+
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

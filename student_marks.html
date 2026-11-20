@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Marks | College Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="sidebar">
+    <h2>College Portal</h2>
+    {% set current_role = session.get('role', role|default('')) %}
+    <p>{{ current_role|capitalize }} Panel</p>
+    <a href="{{ url_for('dashboard') if current_role != 'admin' else url_for('admin_dashboard') }}">Dashboard</a>
+    {% if current_role == 'admin' %}
+        <a href="{{ url_for('admin_users') }}">Manage Users</a>
+    {% elif current_role == 'faculty' %}
+        <a href="{{ url_for('faculty_students') }}">Manage Students</a>
+    {% elif current_role == 'student' %}
+        <a href="{{ url_for('student_marks') }}">My Marks</a>
+    {% endif %}
+    {% if current_role != 'faculty' %}
+        <a href="{{ url_for('change_password') }}">Change Password</a>
+    {% endif %}
+    <a href="{{ url_for('logout') }}">Logout</a>
+</div>
+
+<div class="main-content">
+    <header>
+        <div><h1>My Marks</h1><p>View your subject-wise academic performance.</p></div>
+        <span class="role-badge">STUDENT</span>
+    </header>
+
+    <div class="panel">
+        <h2>Student Information</h2>
+        <p><b>Name:</b> {{ profile.name }}</p>
+        <p><b>Registration ID:</b> {{ profile.roll_number }}</p>
+        <p><b>Dept/Class:</b> {{ profile.dept_class or '-' }}</p>
+        <p><b>Year:</b> {{ profile.year or '-' }}</p>
+    </div>
+
+    <div class="panel">
+        <h2>Academic Marks</h2>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Subject</th><th>Marks / 100</th><th>Result</th></tr></thead>
+                <tbody>
+                {% for mark in marks %}
+                    <tr>
+                        <td>{{ mark.subject }}</td>
+                        <td>{{ "%.2f"|format(mark.total) }}</td>
+                        <td>
+                            {% if mark.total < 35 %}
+                                <span class="fail-result">Fail</span>
+                            {% else %}
+                                <span class="pass-result">Pass</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="3">No marks have been entered yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <a class="primary-link" href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+</div>
+</body>
+</html>

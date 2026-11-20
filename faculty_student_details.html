@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Details | College Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>College Portal</h2>
+    {% set current_role = session.get('role', role|default('')) %}
+    <p>{{ current_role|capitalize }} Panel</p>
+
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('faculty_students') }}">Manage Students</a>
+    <a href="{{ url_for('change_password') }}">Change Password</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</div>
+
+<div class="main-content">
+
+    <header>
+        <div>
+            <h1>Student Details</h1>
+            <p>{{ student.name }} | {{ student.roll_number }}</p>
+        </div>
+        <span class="role-badge">FACULTY</span>
+    </header>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <div class="success-message">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="panel">
+        <h2>Personal Information</h2>
+
+        <p><b>Name:</b> {{ student.name }}</p>
+        <p><b>Registration ID:</b> {{ student.roll_number }}</p>
+        <p><b>Dept/Class:</b> {{ student.dept_class or '-' }}</p>
+        <p><b>Year:</b> {{ student.year or '-' }}</p>
+
+        <div class="page-actions">
+            <a class="edit-btn"
+               href="{{ url_for('faculty_edit_student', student_id=student.student_id) }}">
+                Edit Details
+            </a>
+
+            <a class="primary-link"
+               href="{{ url_for('faculty_marks', student_id=student.student_id) }}">
+                Manage Marks
+            </a>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Student Marks</h2>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Marks / 100</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for mark in marks %}
+                    <tr>
+                        <td>{{ mark.subject }}</td>
+                        <td>{{ "%.2f"|format(mark.total) }}</td>
+                        <td>
+                            {% if mark.total < 35 %}
+                                <span class="fail-result">Fail</span>
+                            {% else %}
+                                <span class="pass-result">Pass</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="3">No marks available.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

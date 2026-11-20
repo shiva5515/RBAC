@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Portal | Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-body">
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">CP</div>
+            <h1>College Portal</h1>
+            <p>College Management System</p>
+        </div>
+
+        <form method="POST">
+            <h2>Welcome Back</h2>
+            <p class="subtitle">Select your role and sign in</p>
+
+            {% with messages = get_flashed_messages() %}
+                {% for message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <label for="role">Login As</label>
+            <select name="role" id="role" required>
+                <option value="">Select Role</option>
+                <option value="student">Student</option>
+                <option value="faculty">Faculty</option>
+                <option value="admin">Admin</option>
+            </select>
+
+            <div id="student-login-fields" hidden>
+                <label for="reg_id">Registration ID</label>
+                <input type="text" name="reg_id" id="reg_id"
+                       placeholder="Enter 9-digit registration ID"
+                       minlength="9" maxlength="9" pattern="[0-9]{9}"
+                       title="Registration ID must contain exactly 9 digits."
+                       autocomplete="username">
+            </div>
+
+            <div id="staff-login-fields" hidden>
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username"
+                       placeholder="Enter your username">
+            </div>
+
+            <label for="password">Password</label>
+            <div class="password-field">
+                <input type="password" name="password" id="password"
+                       placeholder="Enter your password" required>
+                <button type="button" class="toggle-password"
+                        data-target="password">Show</button>
+            </div>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <p class="login-footer">College Management Portal © 2026</p>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        const roleSelect = document.getElementById("role");
+        const studentFields = document.getElementById("student-login-fields");
+        const staffFields = document.getElementById("staff-login-fields");
+        const regId = document.getElementById("reg_id");
+        const username = document.getElementById("username");
+
+        function updateLoginFields() {
+            const isStudent = roleSelect.value === "student";
+            const isStaff = roleSelect.value === "faculty" ||
+                            roleSelect.value === "admin";
+
+            studentFields.hidden = !isStudent;
+            staffFields.hidden = !isStaff;
+            regId.required = isStudent;
+            username.required = isStaff;
+        }
+
+        roleSelect.addEventListener("change", updateLoginFields);
+        updateLoginFields();
+    </script>
+</body>
+</html>

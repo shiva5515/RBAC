@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% if user %}Edit User{% else %}Create User{% endif %}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        /* Password field layout fix */
+        .form-panel .password-field {
+            display: block !important;
+            width: 100% !important;
+            margin-bottom: 20px;
+        }
+
+        .form-panel .password-input-row {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 10px !important;
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        .form-panel .password-input-row input {
+            display: block !important;
+            flex: 1 1 auto !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            height: 46px !important;
+            box-sizing: border-box !important;
+            padding: 12px !important;
+        }
+
+        .form-panel .password-input-row button {
+            display: block !important;
+            position: static !important;
+            flex: 0 0 auto !important;
+            transform: none !important;
+            width: auto !important;
+            height: 42px !important;
+            padding: 8px 18px !important;
+            margin: 0 !important;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .form-panel .password-rules {
+            display: block !important;
+            width: 100% !important;
+            margin-top: 8px !important;
+            line-height: 1.5 !important;
+            font-size: 12px !important;
+            color: #666;
+        }
+
+        .form-panel input,
+        .form-panel select {
+            box-sizing: border-box;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>College Portal</h2>
+    {% set current_role = session.get('role', role|default('')) %}
+    <p>{{ current_role|capitalize }} Panel</p>
+    <a href="{{ url_for('dashboard') if current_role != 'admin' else url_for('admin_dashboard') }}">Dashboard</a>
+    {% if current_role == 'admin' %}
+        <a href="{{ url_for('admin_users') }}">Manage Users</a>
+    {% elif current_role == 'faculty' %}
+        <a href="{{ url_for('faculty_students') }}">Manage Students</a>
+    {% elif current_role == 'student' %}
+        <a href="{{ url_for('student_marks') }}">My Marks</a>
+    {% endif %}
+    {% if current_role != 'faculty' %}
+        <a href="{{ url_for('change_password') }}">Change Password</a>
+    {% endif %}
+    <a href="{{ url_for('logout') }}">Logout</a>
+</div>
+
+<div class="main-content">
+
+    <header>
+        <div>
+            <h1>
+                {% if user %}
+                    Edit User
+                {% else %}
+                    Create New User
+                {% endif %}
+            </h1>
+
+            <p>Enter account and personal information.</p>
+        </div>
+
+        <span class="role-badge">ADMIN</span>
+    </header>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <div class="alert">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="panel form-panel">
+
+        <form method="POST">
+
+            <!-- USER ROLE -->
+            {% if not user %}
+
+                <label for="role">User Role</label>
+
+                <select name="role" id="role" required>
+                    <option value="">Select Role</option>
+                    <option value="student">Student</option>
+                    <option value="faculty">Faculty</option>
+                    <option value="admin">Admin</option>
+                </select>
+
+            {% else %}
+
+                <label>User Role</label>
+
+                <input type="text"
+                       value="{{ user.role|capitalize }}"
+                       disabled>
+
+            {% endif %}
+
+
+            <!-- USERNAME -->
+            <div id="username-field"
+                 {% if not user %}
+                    hidden
+                 {% elif user.role == 'student' %}
+                    hidden
+                 {% endif %}>
+
+                <label for="username">Username</label>
+
+                <input type="text"
+                       id="username"
+                       name="username"
+                       value="{{ user.username if user and user.role != 'student' else '' }}">
+
+            </div>
+
+
+            <!-- REGISTRATION ID -->
+            <div id="regid-field"
+                 {% if not user or user.role != 'student' %}
+                    hidden
+                 {% endif %}>
+
+                <label for="reg_id">Registration ID</label>
+
+                <input
+                    type="text"
+                    id="reg_id"
+                    name="reg_id"
+                    value="{{ profile.roll_number if profile and user and user.role == 'student' else '' }}"
+                    minlength="9"
+                    maxlength="9"
+                    pattern="[0-9]{9}"
+                    {% if user and user.role == 'student' %}readonly{% endif %}
+                    title="Enter exactly 9 digits."
+                >
+
+            </div>
+
+
+            <!-- PASSWORD -->
+            <div class="password-field">
+
+                <label for="password">
+                    {% if user %}
+                        New Password (optional)
+                    {% else %}
+                        Password
+                    {% endif %}
+                </label>
+
+                <div class="password-input-row">
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        {% if not user %}required{% endif %}
+                        minlength="8"
+                        pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}"
+                        title="Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character."
+                        placeholder="{% if user %}Leave blank to keep current password{% else %}Enter a strong password{% endif %}"
+                        autocomplete="new-password"
+                    >
+
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        data-target="password"
+                        aria-label="Show password"
+                    >
+                        Show
+                    </button>
+
+                </div>
+
+                <small class="password-rules">
+                    Password must be at least 8 characters and include:
+                    one uppercase letter, one lowercase letter,
+                    one number and one special character
+                    (for example, @, # or !).
+                </small>
+
+            </div>
+
+
+            <!-- PERSONAL DETAILS -->
+            <div id="profile-fields"
+                 {% if user and user.role == 'admin' %}
+                    hidden
+                 {% endif %}>
+
+                <label for="name">Full Name</label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value="{{ profile.name if profile else '' }}"
+                >
+
+                <div id="student-dept-class-field"
+                     {% if user and user.role != 'student' %}hidden{% endif %}>
+                    <label for="dept_class">Dept/Class</label>
+                    <select id="dept_class" name="dept_class">
+                        <option value="">Select Dept/Class</option>
+                        {% set dept_options = ['CSA/BSC Cyber Security', 'CSA/BSC Data science', 'CSA/ BCA', 'CSA/ BSC Computer science', 'CSA/MCA'] %}
+                        {% for option in dept_options %}
+                        <option value="{{ option }}" {% if profile and profile.dept_class == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div id="faculty-department-field"
+                     {% if user and user.role != 'faculty' %}hidden{% elif not user %}hidden{% endif %}>
+                    <label for="department">Department</label>
+                    <input type="text" id="department" name="department"
+                           value="{{ profile.department if profile and user and user.role == 'faculty' else '' }}">
+                </div>
+
+            </div>
+
+
+            <!-- STUDENT DETAILS -->
+            <div id="student-fields"
+                 {% if not user or user.role != 'student' %}
+                    hidden
+                 {% endif %}>
+
+                <label for="year">Academic Year</label>
+
+                <select name="year" id="year">
+
+                    <option value="">Select Year</option>
+
+                    {% for i in range(1, 5) %}
+
+                        <option
+                            value="{{ i }}"
+                            {% if profile and profile.year == i %}selected{% endif %}
+                        >
+                            Year {{ i }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <!-- FORM BUTTONS -->
+            <button type="submit">
+                {% if user %}
+                    Update User
+                {% else %}
+                    Create User
+                {% endif %}
+            </button>
+
+            <a class="cancel-link"
+               href="{{ url_for('admin_users') }}">
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- EXISTING JAVASCRIPT -->
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+
+<!-- ROLE-BASED FIELD DISPLAY -->
+{% if not user %}
+
+<script>
+
+    const roleSelect = document.getElementById("role");
+
+    const usernameField = document.getElementById("username-field");
+    const regidField = document.getElementById("regid-field");
+
+    const profileFields = document.getElementById("profile-fields");
+    const studentFields = document.getElementById("student-fields");
+    const studentDeptClassField = document.getElementById("student-dept-class-field");
+    const facultyDepartmentField = document.getElementById("faculty-department-field");
+
+    const usernameInput = document.getElementById("username");
+    const regIdInput = document.getElementById("reg_id");
+
+    const nameInput = document.getElementById("name");
+    const yearInput = document.getElementById("year");
+
+
+    function updateRoleFields() {
+
+        const role = roleSelect.value;
+
+        const isStudent = role === "student";
+        const isFaculty = role === "faculty";
+        const isAdmin = role === "admin";
+
+        usernameField.hidden = !(isAdmin || isFaculty);
+
+        regidField.hidden = !isStudent;
+
+        profileFields.hidden = !(isStudent || isFaculty);
+        studentDeptClassField.hidden = !isStudent;
+        facultyDepartmentField.hidden = !isFaculty;
+
+        studentFields.hidden = !isStudent;
+
+        usernameInput.required = isAdmin || isFaculty;
+
+        regIdInput.required = isStudent;
+
+        nameInput.required = isStudent || isFaculty;
+
+        yearInput.required = isStudent;
+
+    }
+
+
+    roleSelect.addEventListener("change", updateRoleFields);
+
+    updateRoleFields();
+
+</script>
+
+{% endif %}
+
+</body>
+</html>

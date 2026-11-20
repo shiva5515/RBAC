@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Marks | College Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>College Portal</h2>
+    {% set current_role = session.get('role', role|default('')) %}
+    <p>{{ current_role|capitalize }} Panel</p>
+
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('faculty_students') }}">Manage Students</a>
+    <a href="{{ url_for('change_password') }}">Change Password</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</div>
+
+<div class="main-content">
+
+    <header>
+        <div>
+            <h1>Manage Marks</h1>
+            <p>{{ student.name }} | Registration ID: {{ student.roll_number }}</p>
+        </div>
+        <span class="role-badge">FACULTY</span>
+    </header>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <div class="success-message">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="panel form-panel">
+        <h2>Add / Update Marks</h2>
+
+        <form method="POST">
+
+            <label for="subject">Subject Name</label>
+            <select id="subject" name="subject" required>
+                <option value="">-- Select Subject --</option>
+                <option value="Python">Python</option>
+                <option value="Advanced Cyber Security">Advanced Cyber Security</option>
+                <option value="Software Engineering">Software Engineering</option>
+                <option value="Penetration Testing">Penetration Testing</option>
+                <option value="Cyber Forensics">Cyber Forensics</option>
+            </select>
+
+            <label for="total">Marks (Out of 100)</label>
+            <input
+                type="number"
+                id="total"
+                name="total"
+                min="0"
+                max="100"
+                step="0.01"
+                required
+            >
+
+            <button type="submit">Save Marks</button>
+        </form>
+    </div>
+
+    <div class="panel">
+        <h2>Existing Marks</h2>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Marks / 100</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for mark in marks %}
+                    <tr>
+                        <td>{{ mark.subject }}</td>
+                        <td>{{ "%.2f"|format(mark.total) }}</td>
+                        <td>
+                            {% if mark.total < 35 %}
+                                <span class="fail-result">Fail</span>
+                            {% else %}
+                                <span class="pass-result">Pass</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="3">No marks entered yet.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <a class="cancel-link"
+       href="{{ url_for('faculty_student_details', student_id=student.student_id) }}">
+        Back to Student Details
+    </a>
+
+</div>
+</body>
+</html>

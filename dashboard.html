@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Portal | Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>College Portal</h2>
+    {% set current_role = session.get('role', role|default('')) %}
+    <p>{{ current_role|capitalize }} Panel</p>
+
+    <a href="{{ url_for('dashboard') if current_role != 'admin' else url_for('admin_dashboard') }}">Dashboard</a>
+
+    {% if current_role == 'admin' %}
+        <a href="{{ url_for('admin_users') }}">Manage Users</a>
+    {% elif current_role == 'faculty' %}
+        <a href="{{ url_for('faculty_students') }}">Manage Students</a>
+    {% elif current_role == 'student' %}
+        <a href="{{ url_for('student_marks') }}">My Marks</a>
+    {% endif %}
+
+    <a href="{{ url_for('change_password') }}">Change Password</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</div>
+
+<div class="main-content">
+    <header>
+        <div>
+            <h1>{{ role|capitalize }} Dashboard</h1>
+            <p>Welcome back, {{ username }}!</p>
+        </div>
+        <span class="role-badge">{{ role|upper }}</span>
+    </header>
+
+    {% if role == 'admin' %}
+        <h2>System Overview</h2>
+        <div class="cards">
+            <div class="card">
+                <h3>Total Students</h3>
+                <h1>{{ stats.students }}</h1>
+            </div>
+            <div class="card">
+                <h3>Total Faculty</h3>
+                <h1>{{ stats.faculty }}</h1>
+            </div>
+            <div class="card">
+                <h3>Total Users</h3>
+                <h1>{{ stats.users }}</h1>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Admin Controls</h2>
+            <p>Manage student, faculty and administrator accounts from one place.</p>
+            <div class="page-actions">
+                <a class="edit-btn" href="{{ url_for('admin_users') }}">Manage All Users</a>
+            </div>
+        </div>
+
+    {% elif role == 'student' %}
+        {% if profile %}
+        <section id="profile" class="panel">
+            <h2>My Personal Details</h2>
+            <p><b>Name:</b> {{ profile.name }}</p>
+            <p><b>Registration ID:</b> {{ profile.roll_number }}</p>
+            <p><b>Dept/Class:</b> {{ profile.dept_class or '-' }}</p>
+            <p><b>Year:</b> {{ profile.year or '-' }}</p>
+        </section>
+        {% else %}
+        <div class="alert">Your student profile has not been created.</div>
+        {% endif %}
+
+        <section class="panel">
+            <h2>Academic Information</h2>
+            <p>View your subject-wise marks and results.</p>
+            <div class="student-page-links">
+                <a class="primary-link" href="{{ url_for('student_marks') }}">My Marks</a>
+            </div>
+        </section>
+
+    {% elif role == 'faculty' %}
+        {% if profile %}
+        <section id="profile" class="panel">
+            <h2>My Faculty Details</h2>
+            <p><b>Name:</b> {{ profile.name }}</p>
+            <p><b>Department:</b> {{ profile.department or '-' }}</p>
+        </section>
+        {% else %}
+        <div class="alert">Your faculty profile has not been created.</div>
+        {% endif %}
+
+        <section class="panel">
+            <h2>Faculty Workspace</h2>
+            <p>View student details, update student information and manage marks.</p>
+            <a class="primary-link" href="{{ url_for('faculty_students') }}">View All Students</a>
+        </section>
+    {% endif %}
+</div>
+
+</body>
+</html>
